@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="blob shape1"></div>
+    <div class="blob shape2"></div>
+
+    <div class="container">
+        <header>
+            <h1>AI Document <span>Explorer</span></h1>
+            <p>Powered by Gemini 2.5 Flash</p>
+        </header>
+
+        <form id="qaForm" class="glass-panel" enctype="multipart/form-data">
+            
+            <div class="input-group">
+                <label for="fileUpload">Upload Document (.txt, .md, .pdf)</label>
+                <div class="file-drop-area" id="fileDropArea">
+                    <span class="file-msg">Drag & Drop or Click to Select</span>
+                    <input type="file" id="fileUpload" name="file" accept=".txt,.md,.pdf" class="file-input">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="contextText">Or paste text context directly</label>
+                <textarea id="contextText" name="context_text" rows="4" placeholder="Enter the text that contains the answers you are looking for..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="question">Your Question</label>
+                <input type="text" id="question" name="question" placeholder="e.g. What is the main objective discussed?" required autocomplete="off">
+            </div>
+
+            <button type="submit" id="submitBtn">
+                <span id="btnText">Ask AI</span>
+                <div class="spinner" id="spinner"></div>
+            </button>
+        </form>
+
+        <div id="answerContainer" class="glass-panel hidden">
+            <h3>AI Response</h3>
+            <div id="answerContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('qaForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const spinner = document.getElementById('spinner');
+        const answerContainer = document.getElementById('answerContainer');
+        const answerContent = document.getElementById('answerContent');
+        const fileInput = document.getElementById('fileUpload');
+        const fileMsg = document.querySelector('.file-msg');
+
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files.length > 0) {
+                fileMsg.textContent = "Loaded: " + fileInput.files[0].name;
+            } else {
+                fileMsg.textContent = "Drag & Drop or Click to Select";
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            answerContainer.classList.add('hidden');
+            btnText.textContent = 'Processing...';
+            spinner.style.display = 'block';
+            submitBtn.disabled = true;
+            
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    answerContent.innerHTML = `<span style="color:#ff6b6b">${data.error}</span>`;
+                } else {
+                    // Replace newlines with <br> for HTML rendering
+                    answerContent.innerHTML = data.answer.replace(/\n/g, '<br>');
+                }
+                
+                answerContainer.classList.remove('hidden');
+                
+            } catch (error) {
+                answerContent.innerHTML = `<span style="color:#ff6b6b">An unexpected error occurred. Could not connect to server.</span>`;
+                answerContainer.classList.remove('hidden');
+            } finally {
+                btnText.textContent = 'Ask AI';
+                spinner.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
