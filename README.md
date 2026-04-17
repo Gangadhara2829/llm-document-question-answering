@@ -1,5 +1,7 @@
 # AI Document Explorer (Web App)
 
+**🌍 Live Demo:** [https://llm-document-question-answering.vercel.app/](https://llm-document-question-answering.vercel.app/)
+
 A premium, modern web application that allows users to upload plain text, Markdown, or PDF documents, or drop in paragraphs directly, and query the document using large language models.
 
 ## Features
